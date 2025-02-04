@@ -2,7 +2,7 @@
 $activationKey = "UC-KEY-1"
 
 # Server endpoints (replace with your actual server URL)
-$baseUrl = "http://your-server-address:5000/api/validate-key"
+$baseUrl = "https://key-validation-backend.onrender.com"
 $validationUrl = "$baseUrl`?key=$activationKey"
 
 # First check if key exists
