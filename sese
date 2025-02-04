@@ -34,21 +34,9 @@ catch {
 
 # Proceed with activation
 try {
-    $tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/massgravel/Microsoft-Activation-Scripts/refs/heads/master/MAS/Separate-Files-Version/Activators/Ohook_Activation_AIO.cmd" -OutFile $tempFile
-    
-    # Run activation script
-    Write-Host "Starting activation process..."
-    $activationResult = cmd.exe /c $tempFile 2>&1
-    $exitCode = $LASTEXITCODE
-
-    if ($exitCode -eq 0) {
-        Write-Host "Activation completed successfully!"
-    }
-    else {
-        Write-Host "Activation process failed. Error code: $exitCode"
-        Write-Host "Error details: $activationResult"
-    }
+   $tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/massgravel/Microsoft-Activation-Scripts/refs/heads/master/MAS/Separate-Files-Version/Activators/Ohook_Activation_AIO.cmd" -OutFile $tempFile
+cmd.exe /c $tempFile
 }
 catch {
     Write-Host "Activation process failed: $_"
