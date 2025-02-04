@@ -1,5 +1,5 @@
 # Activation Wrapper Script
-$activationKey = "UC-KEY-1"
+$activationKey = "UC-KEY-1=MADE"
 
 # Server endpoints (replace with your actual server URL)
 $baseUrl = "https://key-validation-backend.onrender.com"
