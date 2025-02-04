@@ -1,34 +1,62 @@
-# Define the unique key for this command (you should generate a new key for each customer)
-$key = "UNIQUE-CUSTOMER-KEY-6"
+# Activation Wrapper Script
+$activationKey = "UC-KEY-1"
 
-# Define the server-side endpoint that checks and tracks key usage
-$validationUrl = "https://key-validation-backend.onrender.com"
+# Server endpoints (replace with your actual server URL)
+$baseUrl = "http://your-server-address:5000/api/validate-key"
+$validationUrl = "$baseUrl`?key=$activationKey"
 
-# Check if the key has already been used
-$response = Invoke-WebRequest -Uri "$validationUrl?key=$key" -UseBasicParsing -Method GET
-if ($response.Content -eq "invalid") {
-    Write-Host "This command has already been used and cannot be executed again." -ForegroundColor Red
-    exit
-}
-
-# Local marker to prevent multiple executions on the same machine
-$markerFile = "$env:USERPROFILE\.activation_marker_$key"
-
-if (Test-Path $markerFile) {
-    Write-Host "This command has already been used on this machine and cannot be executed again." -ForegroundColor Red
-    exit
-}
-
-# Execute the original command
+# First check if key exists
 try {
-    irm https://raw.githubusercontent.com/massgravel/Microsoft-Activation-Scripts/refs/heads/master/MAS/Separate-Files-Version/Change_Windows_Edition.cmd | iex
-    # If successful, mark the key as used locally and remotely
-    New-Item -Path $markerFile -ItemType File -Force | Out-Null
+    $checkResponse = Invoke-WebRequest -Uri $validationUrl -Method Get
+    $status = $checkResponse.Content.Trim()
+    
+    if ($status -eq "invalid") {
+        Write-Host "ERROR: This activation key has already been used. Activation aborted."
+        exit 1
+    }
+}
+catch {
+    Write-Host "Failed to validate activation key. Error: $_"
+    exit 1
+}
 
-    # Notify the server that the key was used successfully
-    Invoke-WebRequest -Uri "$validationUrl?key=$key" -Method POST
+# If key is valid, register it before proceeding
+try {
+    $registerResponse = Invoke-WebRequest -Uri $validationUrl -Method Post
+    if ($registerResponse.Content.Trim() -ne "success") {
+        throw "Failed to register activation key"
+    }
+}
+catch {
+    Write-Host "ERROR: Could not register activation key. Error: $_"
+    exit 1
+}
 
-    Write-Host "Command executed successfully. It will not run again." -ForegroundColor Green
-} catch {
-    Write-Host "An error occurred while executing the command." -ForegroundColor Red
+# Proceed with activation
+try {
+    $tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/massgravel/Microsoft-Activation-Scripts/refs/heads/master/MAS/Separate-Files-Version/Activators/Ohook_Activation_AIO.cmd" -OutFile $tempFile
+    
+    # Run activation script
+    Write-Host "Starting activation process..."
+    $activationResult = cmd.exe /c $tempFile 2>&1
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -eq 0) {
+        Write-Host "Activation completed successfully!"
+    }
+    else {
+        Write-Host "Activation process failed. Error code: $exitCode"
+        Write-Host "Error details: $activationResult"
+    }
+}
+catch {
+    Write-Host "Activation process failed: $_"
+    exit 1
+}
+finally {
+    # Clean up temporary file
+    if (Test-Path $tempFile) {
+        Remove-Item $tempFile -Force
+    }
 }
