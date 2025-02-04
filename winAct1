@@ -1,5 +1,5 @@
 # Activation Wrapper Script
-$activationKey = "test1"
+$activationKey = "windowsActivate-1"
 
 # Server endpoints (replace with your actual server URL)
 $baseUrl = "https://key-validation-backend.onrender.com/api/validate-key"
@@ -33,18 +33,7 @@ catch {
 }
 
 # Proceed with activation
-try {
-   $tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
+
+$tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/massgravel/Microsoft-Activation-Scripts/refs/heads/master/MAS/Separate-Files-Version/Activators/Ohook_Activation_AIO.cmd" -OutFile $tempFile
 cmd.exe /c $tempFile
-}
-catch {
-    Write-Host "Activation process failed: $_"
-    exit 1
-}
-finally {
-    # Clean up temporary file
-    if (Test-Path $tempFile) {
-        Remove-Item $tempFile -Force
-    }
-}
