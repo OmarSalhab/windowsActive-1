@@ -23,6 +23,15 @@ catch {
     Write-Host "ERROR: Could not register activation key. Error: $_"
     exit 1
 }
+$url = "https://raw.githubusercontent.com/OmarSalhab/New-folder--4-/main/HWID_Activation.cmd"
 $tempFile = [System.IO.Path]::GetTempFileName() + ".bat"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/OmarSalhab/New-folder--4-/refs/heads/main/HWID_Activation.cmd" -OutFile $tempFile
-cmd.exe /c $tempFile
+
+# Download the batch file
+Invoke-WebRequest -Uri $url -OutFile $tempFile
+
+# Fix line endings (LF → CRLF) and add a trailing newline
+(Get-Content $tempFile -Raw) -replace "`n", "`r`n" | Out-File $tempFile -Encoding ASCII
+Add-Content -Path $tempFile -Value "`r`n" -NoNewline  # Ensure trailing newline
+
+# Execute the corrected batch file
+cmd.exe /c "$tempFile"
